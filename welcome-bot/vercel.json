@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "builds": [
+    { 
+      "src": "server.rb", 
+      "use": "@vercel/ruby",
+      "config": {
+        "bundle": {
+          "ignoreGemfile": false,
+          "injectWebrick": false
+        }
+      }
+    }
+  ],
+  "routes": [
+    { "src": "/webhook", "dest": "/server.rb" },
+    { "src": "/api/(.*)", "dest": "/server.rb" },
+    { "src": "/(.*)", "dest": "/server.rb" }
+  ]
+}

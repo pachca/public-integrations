@@ -1,0 +1,47 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    base64 (0.3.0)
+    csv (3.3.5)
+    dotenv (2.8.1)
+    httparty (0.23.1)
+      csv
+      mini_mime (>= 1.0.0)
+      multi_xml (>= 0.5.2)
+    json (2.12.2)
+    logger (1.7.0)
+    mini_mime (1.1.5)
+    multi_xml (0.6.0)
+    mustermann (3.0.3)
+      ruby2_keywords (~> 0.0.1)
+    nio4r (2.7.4)
+    puma (6.6.0)
+      nio4r (~> 2.0)
+    rack (2.2.17)
+    rack-protection (3.2.0)
+      base64 (>= 0.1.0)
+      rack (~> 2.2, >= 2.2.4)
+    ruby2_keywords (0.0.5)
+    sinatra (3.2.0)
+      mustermann (~> 3.0)
+      rack (~> 2.2, >= 2.2.4)
+      rack-protection (= 3.2.0)
+      tilt (~> 2.0)
+    tilt (2.6.0)
+    webrick (1.9.1)
+
+PLATFORMS
+  x64-mingw-ucrt
+
+DEPENDENCIES
+  dotenv (~> 2.8)
+  httparty (~> 0.21)
+  json (~> 2.6)
+  logger (~> 1.5)
+  multi_xml (~> 0.6.0)
+  puma (~> 6.3)
+  sinatra (~> 3.0)
+  webrick (~> 1.8)
+
+BUNDLED WITH
+   2.6.8

@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  pachca-welcome-bot:
+    build: .
+    ports:
+      - "4567:4567"
+    volumes:
+      - ./.env:/app/.env
+    restart: always
+    environment:
+      - RACK_ENV=production
