@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "builds": [
+    { 
+      "src": "config.ru", 
+      "use": "@vercel/ruby",
+      "config": {
+        "rubyVersion": "3.2.0",
+        "buildCommand": "./build.sh"
+      }
+    }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "config.ru" }
+  ],
+  "env": {
+    "LANG": "en_US.UTF-8",
+    "LC_ALL": "en_US.UTF-8",
+    "RACK_ENV": "production",
+    "RUBYOPT": "-E UTF-8:UTF-8"
+  }
+}
