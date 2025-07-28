@@ -1,6 +1,8 @@
-# Pachca Unfurling Bot (Ruby)
+# Pachca Unfurling Bot
 
 Бот для разворачивания ссылок (unfurling) в Пачке с поддержкой Trello, Kaiten и сообщений из Пачки и возможностью добавить другие обработчики для сторонних сервисов.
+
+(Ссылка)[https://github.com/pachca/public-integrations] на другие интеграции, разработанные командой Пачки.
 
 ## Быстрый старт
 
