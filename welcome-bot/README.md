@@ -23,8 +23,8 @@
 ### 1. Клонируйте репозиторий
 
 ```sh
-git clone https://github.com/pachca/pachca-welcome-bot.git
-cd pachca-welcome-bot
+git clone https://github.com/pachca/public-integrations.git
+cd public-integrations/welcome-bot
 ```
 
 ### 2. Создание и редактирование файла окружения
@@ -79,8 +79,8 @@ https://7357-51-159-135-74.ngrok-free.app/webhook
 
 ### 2. Клонируйте репозиторий на сервер:
    ```sh
-   git clone https://github.com/pachca/pachca-welcome-bot.git
-   cd pachca-welcome-bot
+   git clone https://github.com/pachca/public-integrations.git
+cd public-integrations/welcome-bot
    ```
 ### 3. Создайте файл `.env` на основе примера:
    ```sh
@@ -138,8 +138,8 @@ https://7357-51-159-135-74.ngrok-free.app/webhook
 
 1. Клонируйте репозиторий на сервер:
    ```sh
-   git clone https://github.com/pachca/pachca-welcome-bot.git
-   cd pachca-welcome-bot
+   git clone https://github.com/pachca/public-integrations.git
+   cd public-integrations/welcome-bot
    ```
 2. Создайте файл `.env` на основе примера:
    ```sh
@@ -181,8 +181,8 @@ https://7357-51-159-135-74.ngrok-free.app/webhook
 
 1. Клонируйте репозиторий на сервер:
    ```sh
-   git clone https://github.com/pachca/pachca-welcome-bot.git
-   cd pachca-welcome-bot
+   git clone https://github.com/pachca/public-integrations.git
+   cd public-integrations/welcome-bot
    ```
 2. Установите зависимости:
    ```sh
@@ -211,11 +211,11 @@ https://7357-51-159-135-74.ngrok-free.app/webhook
    [Service]
    Type=simple
    User=your_user
-   WorkingDirectory=/path/to/pachca-welcome-bot
-   ExecStart=/usr/bin/ruby /path/to/pachca-welcome-bot/run.rb
+   WorkingDirectory=/path/to/public-integrations/welcome-bot
+   ExecStart=/usr/bin/ruby /path/to/public-integrations/welcome-bot/run.rb
    Restart=on-failure
    Environment=RACK_ENV=production
-   EnvironmentFile=/path/to/pachca-welcome-bot/.env
+   EnvironmentFile=/path/to/public-integrations/welcome-bot/.env
 
    [Install]
    WantedBy=multi-user.target
