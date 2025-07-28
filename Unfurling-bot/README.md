@@ -17,8 +17,8 @@
 
 1. Клонируйте репозиторий и перейдите в папку:
    ```sh
-   git clone https://github.com/artemypmnchk/pachca_unfurl_public.git
-   cd pachca_unfurl_public
+   git clone https://github.com/pachca/public-integrations.git
+   cd public-integrations/Unfurling-bot
    ```
 
 2. Создайте файл `.env` на основе `.env.example` и заполните необходимые переменные:
@@ -151,8 +151,8 @@
 
 2. Клонируйте репозиторий и настройте переменные окружения:
    ```sh
-   git clone https://github.com/artemypmnchk/pachca_unfurl_public.git
-   cd pachca_unfurl_public
+   git clone https://github.com/pachca/public-integrations.git
+   cd public-integrations/Unfurling-bot
    cp .env.example .env
    nano .env  # Заполните переменные окружения
    ```
@@ -200,7 +200,7 @@
    Для обновления бота до последней версии из Git-репозитория выполните следующие команды:
    ```sh
    # 1. Убедитесь, что вы в директории проекта
-   # cd /путь/к/вашему/проекту/pachca_unfurl_public
+   # cd /путь/к/вашему/проекту/public-integrations/Unfurling-bot
 
    # 2. Остановите и удалите старый контейнер
    docker-compose down
@@ -251,8 +251,8 @@
 
 2. Клонируйте репозиторий и установите зависимости:
    ```sh
-   git clone https://github.com/artemypmnchk/pachca_unfurl_public.git
-   cd pachca_unfurl_public
+   git clone https://github.com/pachca/public-integrations.git
+   cd public-integrations/Unfurling-bot
    bundle install
    ```
 
@@ -276,11 +276,11 @@
    [Service]
    Type=simple
    User=your_username
-   WorkingDirectory=/path/to/pachca_unfurl_public
+   WorkingDirectory=/path/to/public-integrations/Unfurling-bot
    ExecStart=/home/your_username/.rbenv/shims/bundle exec ruby app.rb -p 4567 -e production
    Restart=always
    Environment=RACK_ENV=production
-   EnvironmentFile=/path/to/pachca_unfurl_public/.env
+   EnvironmentFile=/path/to//path/to/public-integrations/Unfurling-bot/.env
    
    [Install]
    WantedBy=multi-user.target
