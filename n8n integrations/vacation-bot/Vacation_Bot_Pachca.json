@@ -1,0 +1,668 @@
+{
+    "name": "Бот_отпусков_Пачка",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "12345678",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                -1296,
+                0
+            ],
+            "id": "12345678",
+            "name": "Webhook",
+            "webhookId": "12345678"
+        },
+        {
+            "parameters": {
+                "rules": {
+                    "values": [
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "leftValue": "={{ $json.body.type === \"message\" && $json.body.event === \"new\" && $json.body.content === \"/start\" }}",
+                                        "rightValue": "",
+                                        "operator": {
+                                            "type": "boolean",
+                                            "operation": "true",
+                                            "singleValue": true
+                                        },
+                                        "id": "12345678"
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "Start Command"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "id": "12345678",
+                                        "leftValue": "={{ $json.body.type === \"button\" && $json.body.event === \"click\" && $json.body.data === \"vacation_request\" }}",
+                                        "rightValue": "",
+                                        "operator": {
+                                            "type": "boolean",
+                                            "operation": "true",
+                                            "singleValue": true
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "Open Form"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "id": "12345678",
+                                        "leftValue": "={{ $json.body.type === \"view\" && $json.body.event === \"submit\" && $json.body.callback_id === \"vacation_form\" }}",
+                                        "rightValue": "",
+                                        "operator": {
+                                            "type": "boolean",
+                                            "operation": "true",
+                                            "singleValue": true
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "Form Submitted"
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "id": "12345678",
+                                        "leftValue": "={{ $json.body.type === \"button\" && $json.body.event === \"click\" && ($json.body.data.includes(\"approve_\") || $json.body.data.includes(\"reject_\") || $json.body.data.includes(\"clarify_\")) }}",
+                                        "rightValue": "",
+                                        "operator": {
+                                            "type": "boolean",
+                                            "operation": "true",
+                                            "singleValue": true
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            },
+                            "renameOutput": true,
+                            "outputKey": "HR Action"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.switch",
+            "typeVersion": 3.2,
+            "position": [
+                -1072,
+                -32
+            ],
+            "id": "12345678",
+            "name": "Switch"
+        },
+        {
+            "parameters": {
+                "entityId": "={{ $json.chat_id }}",
+                "content": "=✅ Заявка отправлена!\n\n**Номер заявки:** {{ $node[\"Parse Form Data\"].json.request_id }}\n**Даты:** {{ $node[\"Parse Form Data\"].json.date_start }} - {{ $node[\"Parse Form Data\"].json.date_end }}\n**Тип:** {{ $node[\"Parse Form Data\"].json.vacation_type }}\n**Доступность:** {{ $node[\"Parse Form Data\"].json.availability }}\n**Комментарий:** {{ $node[\"Parse Form Data\"].json.comment }}\n\nВы получите уведомление, когда HR примет решение."
+            },
+            "type": "n8n-nodes-pachca.pachca",
+            "typeVersion": 1,
+            "position": [
+                -176,
+                96
+            ],
+            "id": "12345678",
+            "name": "Confirm to User",
+            "credentials": {
+                "pachcaApi": {
+                    "id": "12345678",
+                    "name": "12345678"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Данные из Switch (форма)\nconst webhookData = $input.item.json.body;\nconst formData = webhookData.data;\nconst userId = webhookData.user_id;\n\n// Извлекаем start_message_id из private_metadata (просто число)\nconst startMessageId = webhookData.private_metadata;\n\n// Маппинг данных...\nconst typeMap = {\n  'annual': '💰 Ежегодный оплачиваемый отпуск',\n  'unpaid': '🚫 Без сохранения зарплаты',\n  'parental': '🤰🏼 По уходу за ребёнком',\n  'educational': '📚 Учебный'\n};\n\nconst availabilityMap = {\n  'unavailable': '❌ Полностью недоступен',\n  'phone_only': '📱 Только телефон',\n  'phone_laptop': '💻 Телефон и ноутбук'\n};\n\nconst requestId = `REQ_${Date.now()}`;\nconst dateStart = new Date(formData.date_start).toLocaleDateString('ru-RU');\nconst dateEnd = new Date(formData.date_end).toLocaleDateString('ru-RU');\n\nreturn {\n  json: {\n    user_id: userId,\n    start_message_id: startMessageId,\n    date_start: dateStart,\n    date_end: dateEnd,\n    date_start_raw: formData.date_start,\n    date_end_raw: formData.date_end,\n    vacation_type: typeMap[formData.vacation_type] || formData.vacation_type,\n    vacation_type_raw: formData.vacation_type,\n    availability: availabilityMap[formData.availability] || formData.availability,\n    availability_raw: formData.availability,\n    comment: formData.comment || 'Не указан',\n    request_id: requestId\n  }\n};"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -640,
+                96
+            ],
+            "id": "12345678",
+            "name": "Parse Form Data"
+        },
+        {
+            "parameters": {
+                "resource": "user",
+                "operation": "getById",
+                "userId": "={{ $node[\"Parse Form Data\"].json.user_id }}"
+            },
+            "type": "n8n-nodes-pachca.pachca",
+            "typeVersion": 1,
+            "position": [
+                304,
+                96
+            ],
+            "id": "12345678",
+            "name": "Get Use Info",
+            "credentials": {
+                "pachcaApi": {
+                    "id": "12345678",
+                    "name": "12345678"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Данные пользователя из Get User Info (текущий input)\nconst userData = $input.item.json;\n\n// Данные формы из Save Confirmation Message ID (через $node)\nconst formData = $node[\"Save Confirmation Message ID\"].json;\n\n// Объединяем все данные\nreturn {\n  json: {\n    // Данные из формы\n    user_id: formData.user_id,\n    date_start: formData.date_start,\n    date_end: formData.date_end,\n    date_start_raw: formData.date_start_raw,\n    date_end_raw: formData.date_end_raw,\n    vacation_type: formData.vacation_type,\n    vacation_type_raw: formData.vacation_type_raw,\n    availability: formData.availability,\n    availability_raw: formData.availability_raw,\n    comment: formData.comment,\n    request_id: formData.request_id,\n    confirmation_message_id: formData.confirmation_message_id, // ← ДОБАВЛЕНО\n    \n    // Данные пользователя из API\n    first_name: userData.first_name || 'Не указано',\n    last_name: userData.last_name || '',\n    nickname: userData.nickname || '',\n    email: userData.email || 'Не указан',\n    department: userData.department || 'Не указан'\n  }\n};"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                544,
+                96
+            ],
+            "id": "12345678",
+            "name": "Merge User Data"
+        },
+        {
+            "parameters": {
+                "entityId": 12345678,
+                "content": "=📋 **Новая заявка на отпуск от @{{ $json.nickname }}**\n\n**Заявка:** {{ $json.request_id }}\n\n👤 **Сотрудник:** {{ $json.first_name }} {{ $json.last_name }} (@{{ $json.nickname }})\n🏢 **Отдел**: {{ $json.department }}\n\n**Даты:** {{ $json.date_start }} → {{ $json.date_end }}\n**Тип:** {{ $json.vacation_type }}\n**Доступность:** {{ $json.availability }}\n**Комментарий:** {{ $json.comment }}",
+                "buttons": {
+                    "button": [
+                        {
+                            "text": "✅ Одобрить",
+                            "data": "=approve_{{ $json.user_id }}_{{ $json.request_id }}_{{ $json.confirmation_message_id }}"
+                        },
+                        {
+                            "text": "❌ Отклонить",
+                            "data": "=reject_{{ $json.user_id }}_{{ $json.request_id }}_{{ $json.confirmation_message_id }}"
+                        },
+                        {
+                            "text": "❓ Уточнить",
+                            "data": "=clarify_{{ $json.user_id }}_{{ $json.request_id }}_{{ $json.confirmation_message_id }}"
+                        }
+                    ]
+                }
+            },
+            "type": "n8n-nodes-pachca.pachca",
+            "typeVersion": 1,
+            "position": [
+                784,
+                96
+            ],
+            "id": "12345678",
+            "name": "Send to HR Chat",
+            "credentials": {
+                "pachcaApi": {
+                    "id": "12345678",
+                    "name": "12345678"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Получаем ID сообщения подтверждения из Confirm to User\nconst confirmationMessageId = $input.item.json.id;\n\n// Берем данные из Parse Form Data\nconst formData = $node[\"Parse Form Data\"].json;\n\n// Объединяем\nreturn {\n  json: {\n    ...formData,\n    confirmation_message_id: confirmationMessageId\n  }\n};"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                64,
+                96
+            ],
+            "id": "12345678",
+            "name": "Save Confirmation Message ID"
+        },
+        {
+            "parameters": {
+                "entityType": "user",
+                "entityId": "={{ $json.body.user_id }}",
+                "content": "Привет! 👋\n\nДля подачи заявки на отпуск нажмите кнопку ниже:",
+                "buttons": {
+                    "button": [
+                        {
+                            "text": "✏️ Заявка на отпуск",
+                            "data": "vacation_request"
+                        }
+                    ]
+                }
+            },
+            "type": "n8n-nodes-pachca.pachca",
+            "typeVersion": 1,
+            "position": [
+                -640,
+                -288
+            ],
+            "id": "12345678",
+            "name": "Start Message",
+            "credentials": {
+                "pachcaApi": {
+                    "id": "12345678",
+                    "name": "12345678"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "form",
+                "formBuilderMode": "builder",
+                "formTitle": "Заявка на отпуск",
+                "submitText": "Отправить заявку",
+                "formBlocks": {
+                    "block": [
+                        {
+                            "type": "plain_text",
+                            "text": "Заполните форму для оформления заявки на отпуск"
+                        },
+                        {
+                            "type": "date",
+                            "name": "date_start",
+                            "label": "Дата начала отпуска",
+                            "required": true
+                        },
+                        {
+                            "type": "date",
+                            "name": "date_end",
+                            "label": "Дата окончания отпуска",
+                            "required": true
+                        },
+                        {
+                            "type": "divider"
+                        },
+                        {
+                            "type": "select",
+                            "name": "vacation_type",
+                            "label": "Тип отпуска",
+                            "required": true,
+                            "options": {
+                                "option": [
+                                    {
+                                        "text": "💰 Ежегодный оплачиваемый отпуск",
+                                        "value": "annual"
+                                    },
+                                    {
+                                        "text": "🚫 Без сохранения зарплаты",
+                                        "value": "unpaid"
+                                    },
+                                    {
+                                        "text": "🤰🏼 По уходу за ребёнком",
+                                        "value": "parental"
+                                    },
+                                    {
+                                        "text": "📚 Учебный",
+                                        "value": "educational"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "type": "radio",
+                            "name": "availability",
+                            "label": "Доступность во время отпуска",
+                            "required": true,
+                            "options": {
+                                "option": [
+                                    {
+                                        "text": "Полностью недоступен",
+                                        "value": "unavailable",
+                                        "description": "Не буду отвечать на сообщения и звонки"
+                                    },
+                                    {
+                                        "text": "Только телефон",
+                                        "value": "phone_only",
+                                        "description": "Буду отвечать только на срочные звонки"
+                                    },
+                                    {
+                                        "text": "Телефон и ноутбук",
+                                        "value": "phone_laptop",
+                                        "description": "Буду доступен для важных вопросов"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "type": "input",
+                            "name": "comment",
+                            "label": "Комментарий (необязательно)",
+                            "multiline": true
+                        }
+                    ]
+                },
+                "triggerId": "={{ $json.trigger_id }}",
+                "privateMetadata": "={{ $json.start_message_id }}",
+                "callbackId": "vacation_form"
+            },
+            "type": "n8n-nodes-pachca.pachca",
+            "typeVersion": 1,
+            "position": [
+                -416,
+                -96
+            ],
+            "id": "12345678",
+            "name": "Create & open form view",
+            "credentials": {
+                "pachcaApi": {
+                    "id": "12345678",
+                    "name": "12345678"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "thread",
+                "threadMessageId": "={{ $json.start_message_id }}"
+            },
+            "type": "n8n-nodes-pachca.pachca",
+            "typeVersion": 1,
+            "position": [
+                -416,
+                96
+            ],
+            "id": "12345678",
+            "name": "Create Thread from Start Message",
+            "credentials": {
+                "pachcaApi": {
+                    "id": "12345678",
+                    "name": "12345678"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Получаем данные из webhook\nconst webhookData = $input.item.json.body;\nconst buttonData = webhookData.data;\n\n// Парсим data кнопки: \"approve_44351_REQ_1737923456789_755091234\"\nconst parts = buttonData.split('_');\nconst action = parts[0];\nconst userId = parts[1];\nconst requestId = parts.slice(2, -1).join('_'); // ← ИЗМЕНЕНО\nconst confirmationMessageId = parts[parts.length - 1]; // ← ДОБАВЛЕНО\n\n// Маппинг действий для сообщений\nconst actionMap = {\n  'approve': {\n    emoji: '✅',\n    text: 'Одобрено',\n    userMessage: 'Ваша заявка {requestId} была одобрена! 🎉'\n  },\n  'reject': {\n    emoji: '❌',\n    text: 'Отклонено',\n    userMessage: 'Ваша заявка {requestId} была отклонена.'\n  },\n  'clarify': {\n    emoji: '❓',\n    text: 'Требуются уточнения',\n    userMessage: 'По вашей заявке {requestId} требуются уточнения.'\n  }\n};\n\n// Получаем информацию о HR (кто нажал кнопку)\nconst hrUserId = webhookData.user_id;\nconst hrName = webhookData.user?.first_name || 'HR';\n\nreturn {\n  json: {\n    action: action,\n    user_id: parseInt(userId),\n    request_id: requestId,\n    confirmation_message_id: parseInt(confirmationMessageId), // ← ДОБАВЛЕНО\n    hr_user_id: hrUserId,\n    hr_name: hrName,\n    action_emoji: actionMap[action].emoji,\n    action_text: actionMap[action].text,\n    user_message: actionMap[action].userMessage.replace('{requestId}', requestId)\n  }\n};"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -640,
+                304
+            ],
+            "id": "12345678",
+            "name": "Parse HR Action"
+        },
+        {
+            "parameters": {
+                "entityType": "thread",
+                "entityId": "={{ $node[\"Get Message Info\"].json.entity_id }}",
+                "content": "=@{{ $node[\"Get a User\"].json.nickname }} 🌴\n**Статус заявки на отпуск:** {{ $node[\"Parse HR Action\"].json.action_text }}\n\n{{ $node[\"Parse HR Action\"].json.user_message }}\n\n// @HR @Руководители"
+            },
+            "type": "n8n-nodes-pachca.pachca",
+            "typeVersion": 1,
+            "position": [
+                64,
+                304
+            ],
+            "id": "12345678",
+            "name": "Send a message",
+            "credentials": {
+                "pachcaApi": {
+                    "id": "12345678",
+                    "name": "12345678"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "user",
+                "operation": "getById",
+                "userId": "={{ $node[\"Parse HR Action\"].json.user_id }}"
+            },
+            "type": "n8n-nodes-pachca.pachca",
+            "typeVersion": 1,
+            "position": [
+                -176,
+                304
+            ],
+            "id": "12345678",
+            "name": "Get a User",
+            "credentials": {
+                "pachcaApi": {
+                    "id": "12345678",
+                    "name": "12345678"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Получаем webhook о нажатии кнопки \"Open Form\"\nconst webhookData = $input.item.json.body;\n\n// ID сообщения, в котором была кнопка (Start Message)\nconst startMessageId = webhookData.message_id;\nconst triggerId = webhookData.trigger_id;\n\nreturn {\n  json: {\n    start_message_id: startMessageId,\n    trigger_id: triggerId\n  }\n};"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -640,
+                -96
+            ],
+            "id": "12345678",
+            "name": "Get Start Message ID"
+        },
+        {
+            "parameters": {
+                "operation": "getById",
+                "messageId": "={{ $json.confirmation_message_id }}"
+            },
+            "type": "n8n-nodes-pachca.pachca",
+            "typeVersion": 1,
+            "position": [
+                -416,
+                304
+            ],
+            "id": "12345678",
+            "name": "Get Message Info",
+            "credentials": {
+                "pachcaApi": {
+                    "id": "12345678",
+                    "name": "12345678"
+                }
+            }
+        }
+    ],
+    "pinData": {},
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Switch",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Switch": {
+            "main": [
+                [
+                    {
+                        "node": "Start Message",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Get Start Message ID",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Parse Form Data",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Parse HR Action",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Confirm to User": {
+            "main": [
+                [
+                    {
+                        "node": "Save Confirmation Message ID",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parse Form Data": {
+            "main": [
+                [
+                    {
+                        "node": "Create Thread from Start Message",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Use Info": {
+            "main": [
+                [
+                    {
+                        "node": "Merge User Data",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Merge User Data": {
+            "main": [
+                [
+                    {
+                        "node": "Send to HR Chat",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Save Confirmation Message ID": {
+            "main": [
+                [
+                    {
+                        "node": "Get Use Info",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Start Message": {
+            "main": [
+                []
+            ]
+        },
+        "Create Thread from Start Message": {
+            "main": [
+                [
+                    {
+                        "node": "Confirm to User",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parse HR Action": {
+            "main": [
+                [
+                    {
+                        "node": "Get Message Info",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get a User": {
+            "main": [
+                [
+                    {
+                        "node": "Send a message",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Start Message ID": {
+            "main": [
+                [
+                    {
+                        "node": "Create & open form view",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Message Info": {
+            "main": [
+                [
+                    {
+                        "node": "Get a User",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "active": true,
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "versionId": "12345678",
+    "meta": {
+        "templateCredsSetupCompleted": true,
+        "instanceId": "12345678"
+    },
+    "id": "12345678",
+    "tags": []
+}
